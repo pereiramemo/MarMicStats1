@@ -3,9 +3,12 @@
 ############
 # Make sure to write the path to the folder where bioenv-2 is. 
 # You can use tab to auto complete and check if the path is correct.
-bioenv3=read.csv("bioenv-3.csv",header=T,row.names=1)
+bioenv3 <- read.csv("bioenv-3.csv",header=T,row.names=1)
 
-# compute the mean and standard deviations
+# inspect the table 
+head(bioenv3)
+
+# compute the mean and the standard deviation
 a.mean <- mean(bioenv3$a)
 a.sd <- sd(bioenv3$a)
 
@@ -18,14 +21,14 @@ pt(t.stat, df=24,lower.tail=F )
 plot(seq(-4,4,by=0.1),dt(seq(-4,4,by=0.1),df=24),type="l")
 abline(v=t.stat)
 
-# do the test with the R function 
+# do the test using a function from R 
 t.test(bioenv3$a,mu=10,alternative="greater")
 
 ############
 #1.2)
 ############
 
-# compute the mean and standard deviations
+# compute the mean and the standard deviation
 b.mean <- mean(bioenv3$b)
 b.sd <- sd(bioenv3$b)
 
@@ -34,7 +37,7 @@ t.stat <- (b.mean - 10 )/(b.sd/sqrt(length(bioenv3$b)))
 t.stat
 pt(t.stat, df=24,lower.tail=F )*2
 
-# do the test with the R function 
+# do the test using a function from R 
 t.test(bioenv3$b,mu=10,alternative="two.sided")
 
 ############
@@ -46,7 +49,7 @@ t.stat <- (a.mean - b.mean)/sqrt( (a.sd^2)/length(bioenv3$a) + (b.sd^2)/length(b
 t.stat
 pt(t.stat,df=48,lower.tail=T)
 
-# do the test with the R function 
+# do the test using a function from R 
 # how are the degrees of freedom computed?
 t.test(bioenv3$a,bioenv3$b,alternative="less")
 t.test(bioenv3$a,bioenv3$b,alternative="less", var.equal = TRUE)
@@ -56,8 +59,12 @@ t.test(bioenv3$a,bioenv3$b,alternative="less", var.equal = TRUE)
 ############
 
 # statistical power: the probability of accepting the alternative hypothesis (H1) when it is true.
-# test 1.1)
 
+# first install and load the package pwr
+install.packages("pwr")
+library("pwr")
+
+# test 1.1)
 pwr.t.test(n = 25, d=0.4, sig.level = 0.05 ,type="one.sample")
 
 ############
@@ -108,7 +115,7 @@ mydata <- c(norm.a,norm.b,norm.c)
 
 mydata.df <- data.frame(mydata,groups)
 
-# boxplot is a convenient way of graphically depicting groups of numerical data through their quartiles.
+# Boxplots are a convenient way of graphically depicting groups of numerical data through their quartiles.
 # The spacings between the different parts of the box indicate the degree of dispersion (spread) and skewness in the data, and show outliers. 
 plot(mydata ~ groups)
 
@@ -117,20 +124,20 @@ par(mfrow=c(2,1),mar=c(1,1,1,1))
 boxplot(mynorm.1,horizontal = T)
 hist(mynorm.1)
 
-# test homogeneity of variance
+# test homogeneity of variance (assumption of the ANOVA)
 bartlett.test(mydata,groups) # the null hypothesis is that the variances are homogeneous
 
-# perform anova
+# perform the ANOVA
 a.results <- aov(mydata ~ groups,data=mydata.df)
 summary(a.results)
 
 # Df = degree of freedom
 # Sum Sq = deviance (within groups, and residual)
 # Mean Sq = variance (within groups, and residual)
-# F value = the value of the Fisher statistic test, so computed (variance within groups) / (variance residual)
+# F value = the value of the Fisher statistic test, computed as (variance within groups) / (variance residual)
 # Pr(>F) = p-value
 
-# We clearly reject the null hypothesis of equal means for all three drug groups. 
+# We clearly reject the null hypothesis of equal means for all three groups. 
 # We have to find out which ones are different. 
 # One way to do this is applying pairwise t-test 
 pairwise.t.test(mydata, groups, p.adjust="bonferroni")
@@ -138,14 +145,14 @@ pairwise.t.test(mydata, groups, p.adjust="bonferroni")
 # The Bonferroni correction is based on the idea that if an experimenter is testing m hypotheses,
 # then one way of maintaining the family - wise error rate (FWER) is to test each individual hypothesis 
 # at a statistical significance level of 1/m times what it would be if only one hypothesis were tested.
-# So, if the desired significance level for the whole family of tests should be (at most) a 
-# then the Bonferroni correction would test each individual hypothesis at a significance level of a/m.
+# So, if the desired significance level for the whole family of tests should be (at most) alpha 
+# then the Bonferroni correction would test each individual hypothesis at a significance level of alpha/m.
 
 # Other option is applying the function TukeyHSD().
 TukeyHSD(a.results, conf.level=0.95)
 
 ###############
-#5) chi saured and fisher exact test
+#5) chi squared and fisher's exact tests
 ###############
 
 # these are used to test the correspondence between categorical variables
@@ -167,7 +174,7 @@ fisher.test(table(bioenv3$Salinity,bioenv3$Biofilm))
 set.seed(1)
 p.comb <- c(rpois(50,3),rpois(50,4))
 
-# create a vector to store the created null hypothesis distribution: no difference between the means. 
+# create the null hypothesis distribution, which states that there is no difference between the means. 
 rand <- vector (mode="numeric",length=10000)
 
 for (i in 1:length(rand)) {
@@ -175,6 +182,7 @@ for (i in 1:length(rand)) {
   rand[i] <- mean(tmp[1:50]) - mean(tmp[51:100])
 }
 
+par(mfrow=c(1,1))
 hist(rand)
 
 # see where the real difference falls under the null hypothesis
